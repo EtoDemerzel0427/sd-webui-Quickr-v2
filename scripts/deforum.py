@@ -44,7 +44,7 @@ def run_deforum(*args, **kwargs):
     f_location, f_crf, f_preset = get_ffmpeg_params() # get params for ffmpeg exec
     component_names = deforum_args.get_component_names()
     args_dict = {component_names[i]: args[i+2] for i in range(0, len(component_names))}
-    p = StableDiffusionProcessingImg2Img(
+    generator = StableDiffusionProcessingImg2Img(
         sd_model=shared.sd_model,
         outpath_samples = opts.outdir_samples or opts.outdir_img2img_samples,
         outpath_grids = opts.outdir_grids or opts.outdir_img2img_grids
@@ -58,7 +58,7 @@ def run_deforum(*args, **kwargs):
         print(f"\033[4;33mDeforum extension for auto1111 webui, v2.3b\033[0m")
         print(f"Git commit: {get_deforum_version()}")
         args_dict['self'] = None
-        args_dict['p'] = p
+        args_dict['p'] = generator
 
         args_loaded_ok, root, args, anim_args, video_args, parseq_args, loop_args, controlnet_args = deforum_args.process_args(args_dict, i)
         if args_loaded_ok is False:
@@ -185,10 +185,10 @@ def run_deforum(*args, **kwargs):
             
         root.initial_info += "\n The animation is stored in " + args.outdir
         reset_frames_cache(root) # cleanup the RAM in any case
-        processed = Processed(p, [root.first_frame], root.initial_seed, root.initial_info)
+        processed = Processed(generator, [root.first_frame], root.initial_seed, root.initial_info)
         
         if processed is None:
-            processed = process_images(p)
+            processed = process_images(generator)
 
         shared.total_tqdm.clear()
 

@@ -323,6 +323,7 @@ def setup_deforum_setting_dictionary(self, is_img2img, is_extension = True):
     # MAIN (TOP) EXTENSION INFO ACCORD
     with gr.Accordion("Info, Links and Help", open=False, elem_id='main_top_info_accord'):
             gr.HTML("""<strong>Made by <a href="https://deforum.github.io">deforum.github.io</a>, port for AUTOMATIC1111's webui maintained by <a href="https://github.com/kabachuha">kabachuha</a></strong>""")
+            gr.HTML("""<strong> Weiran Huang, Joshua Dao and Anshul Tomar implemented their own video-to-video workflow based on this extension.</strong> """)
             gr.HTML("""<a  style="color:SteelBlue" href="https://github.com/deforum-art/deforum-for-automatic1111-webui/wiki/FAQ-&-Troubleshooting">FOR HELP CLICK HERE</a""", elem_id="for_help_click_here")
             gr.HTML("""<ul style="list-style-type:circle; margin-left:1em">
             <li>The code for this extension: <a  style="color:SteelBlue" href="https://github.com/deforum-art/deforum-for-automatic1111-webui">here</a>.</li>
@@ -960,6 +961,44 @@ def setup_deforum_setting_dictionary(self, is_img2img, is_extension = True):
                         seed_enable_extras = gr.Checkbox(label="Enable subseed controls", value=False)
                         save_sample_per_step = gr.Checkbox(label="Save sample per step", value=d.save_sample_per_step, interactive=True)
                         show_sample_per_step = gr.Checkbox(label="Show sample per step", value=d.show_sample_per_step, interactive=True)
+            with gr.TabItem('FSPBT Train'):
+                project_name = gr.Textbox(label="Project Name", lines=1, interactive=True,
+                                          info="Name of your project, e.g. 'woman_dance'")
+                process_name = gr.Textbox(label="Process Name", lines=1, interactive=True,
+                                          info="Name of your process, e.g. 'my_process'")
+
+                with gr.Row():
+                    with gr.Column():
+                        gr.Label("Gen Input")
+                        input_filtered_gen = gr.File(label="Input Filtered", interactive=True, file_count="multiple",
+                                                     file_types=[".png", ".jpg", ".jpeg"],
+                                                     info="Put raw frames that are not keyframes (10 is enough)")
+                        whole_video_input = gr.File(label="Whole Video Input", interactive=True, file_count="multiple",
+                                                    file_types=[".png", ".jpg", ".jpeg"],
+                                                    info="Put all raw video frames")
+                    with gr.Column():
+                        gr.Label("Train Input")
+                        input_filtered_train = gr.File(label="Input Filtered", interactive=True, file_count="multiple",
+                                                       file_types=[".png", ".jpg", ".jpeg"],
+                                                       info="Put raw keyframe images")
+                        output_train = gr.File(label="Output", interactive=True, file_count="multiple",
+                                               file_types=[".png", ".jpg", ".jpeg"],
+                                               info="Put generated keyframe images by stable diffusion's image-to-image")
+
+                train_button = gr.Button("Train FSPBT", variant="primary")
+
+                def train_fspbt(project_name, process_name, input_filtered_gen, whole_video_input, input_filtered_train,
+                                output_train):
+                    # TODO: Implement the logic for handling and organizing the files, and training the FSPBT model
+                    pass
+
+                train_button.click(
+                    fn=train_fspbt,
+                    inputs=[project_name, process_name, input_filtered_gen, whole_video_input, input_filtered_train,
+                            output_train],
+                    outputs=[],
+                )
+
     # Gradio's Change functions - hiding and renaming elements based on other elements
     show_info_on_ui.change(fn=change_css, inputs=show_info_on_ui, outputs = gr.outputs.HTML())
     # seed.change(fn=auto_hide_n_batch, inputs=seed, outputs=n_batch)
