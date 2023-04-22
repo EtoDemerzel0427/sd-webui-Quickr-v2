@@ -1,3 +1,5 @@
+import subprocess
+
 from modules.shared import cmd_opts, opts
 from modules.processing import get_fixed_seed
 from modules.ui_components import FormRow
@@ -12,8 +14,10 @@ from .gradio_funcs import *
 from .general_utils import get_os, get_deforum_version, custom_placeholder_format, test_long_path_support, get_max_path_length, substitute_placeholders
 from .deforum_controlnet import setup_controlnet_ui, controlnet_component_names, controlnet_infotext
 import tempfile
+import shutil
 
 DEBUG_MODE = opts.data.get("deforum_debug_mode_enabled", False)
+training_progress = None
         
 def Root():
     device = sh.device
@@ -986,11 +990,56 @@ def setup_deforum_setting_dictionary(self, is_img2img, is_extension = True):
                                                info="Put generated keyframe images by stable diffusion's image-to-image")
 
                 train_button = gr.Button("Train FSPBT", variant="primary")
+                interrupt_training = gr.Button("Interrupt Training", visible=True, elem_id="interrupt_training")
+
+                train_button = gr.Button("Train FSPBT", variant="primary")
 
                 def train_fspbt(project_name, process_name, input_filtered_gen, whole_video_input, input_filtered_train,
                                 output_train):
-                    # TODO: Implement the logic for handling and organizing the files, and training the FSPBT model
-                    pass
+
+                    global training_process
+
+                    # get fsbpt root
+                    current_script_dir = os.path.dirname(os.path.abspath(__file__))
+                    basedir = os.path.abspath(os.path.join(current_script_dir, '..', '..'))
+                    FSPBT_ROOT = os.path.join(basedir, 'fspbt')
+
+                    # create project and process folders
+                    base_path = os.path.join(FSPBT_ROOT, project_name)
+                    gen_path = os.path.join(base_path, f"{process_name}_gen")
+                    train_path = os.path.join(base_path, f"{process_name}_train")
+
+                    os.makedirs(os.path.join(gen_path, "input_filtered"), exist_ok=True)
+                    os.makedirs(os.path.join(gen_path, "whole_video_input"), exist_ok=True)
+                    os.makedirs(os.path.join(train_path, "input_filtered"), exist_ok=True)
+                    os.makedirs(os.path.join(train_path, "output"), exist_ok=True)
+
+                    # raw frames to test during training
+                    for file in input_filtered_gen:
+                        shutil.move(file, os.path.join(gen_path, "input_filtered"))
+
+                    # whole video input
+                    for file in whole_video_input:
+                        shutil.move(file, os.path.join(gen_path, "whole_video_input"))
+
+                    # raw keyframes
+                    for file in input_filtered_train:
+                        shutil.move(file, os.path.join(train_path, "input_filtered"))
+
+                    # the folder for the generated images of the selected keyframes
+                    for file in output_train:
+                        shutil.move(file, os.path.join(train_path, "output"))
+
+                    train_dir = os.path.join(train_path, "input_filtered")
+
+                    train_command = f"python train.py --config '_config/reference_P.yaml' --data_root '{train_dir}' --log_interval 2000 --log_folder logs_reference_P"
+                    training_process = subprocess.Popen(train_command, shell=True, cwd=FSPBT_ROOT)
+
+                def interrupt_training_process():
+                    global training_process
+                    if training_process:
+                        training_process.terminate()
+                        training_process = None
 
                 train_button.click(
                     fn=train_fspbt,
@@ -998,6 +1047,13 @@ def setup_deforum_setting_dictionary(self, is_img2img, is_extension = True):
                             output_train],
                     outputs=[],
                 )
+
+                interrupt_training.click(
+                    fn=interrupt_training_process,
+                    inputs=[],
+                    outputs=[],
+                )
+
 
     # Gradio's Change functions - hiding and renaming elements based on other elements
     show_info_on_ui.change(fn=change_css, inputs=show_info_on_ui, outputs = gr.outputs.HTML())
