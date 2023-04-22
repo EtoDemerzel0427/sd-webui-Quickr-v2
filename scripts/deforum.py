@@ -55,8 +55,7 @@ def run_deforum(*args, **kwargs):
         times_to_run = len(args_dict['custom_settings_file'])
         
     for i in range(times_to_run):
-        print(f"\033[4;33mDeforum extension for auto1111 webui, v2.3b\033[0m")
-        print(f"Git commit: {get_deforum_version()}")
+        print(f"\033[4;33mQuickr extension for auto1111 webui, v0.2\033[0m")
         args_dict['self'] = None
         args_dict['p'] = generator
 
@@ -80,7 +79,7 @@ def run_deforum(*args, **kwargs):
             sys.path.extend([
                 basedir + '/scripts/deforum_helpers/src',
                 basedir + '/extensions/deforum/scripts/deforum_helpers/src',
-                basedir + '/extensions/deforum-for-automatic1111-webui/scripts/deforum_helpers/src',
+                basedir + '/extensions/sd-webui-Quickr-v2/scripts/deforum_helpers/src',
             ])
         
         # clean up unused memory
@@ -328,11 +327,11 @@ def on_ui_tabs():
     if opts.data.get("deforum_enable_persistent_settings"):
         trigger_load_general_settings()
         
-    return [(deforum_interface, "Deforum", "deforum_interface")]
+    return [(deforum_interface, "Quickr", "deforum_interface")]
 
 def on_ui_settings():
     srt_ui_params = get_user_values()
-    section = ('deforum', "Deforum")
+    section = ('deforum', "Quickr")
     shared.opts.add_option("deforum_keep_3d_models_in_vram", shared.OptionInfo(False, "Keep 3D models in VRAM between runs", gr.Checkbox, {"interactive": True, "visible": True if not (cmd_opts.lowvram or cmd_opts.medvram) else False}, section=section))
     shared.opts.add_option("deforum_enable_persistent_settings", shared.OptionInfo(False, "Keep settings persistent upon relaunch of webui", gr.Checkbox, {"interactive": True}, section=section))
     shared.opts.add_option("deforum_persistent_settings_path", shared.OptionInfo("models/Deforum/deforum_persistent_settings.txt", "Path for saving your persistent settings file:", section=section))
