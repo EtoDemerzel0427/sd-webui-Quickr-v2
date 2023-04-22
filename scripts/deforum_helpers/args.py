@@ -327,20 +327,8 @@ def setup_deforum_setting_dictionary(self, is_img2img, is_extension = True):
     # MAIN (TOP) EXTENSION INFO ACCORD
     with gr.Accordion("Info, Links and Help", open=False, elem_id='main_top_info_accord'):
             gr.HTML("""<strong>Made by <a href="https://deforum.github.io">deforum.github.io</a>, port for AUTOMATIC1111's webui maintained by <a href="https://github.com/kabachuha">kabachuha</a></strong>""")
-            gr.HTML("""<strong> Weiran Huang, Joshua Dao and Anshul Tomar implemented their own video-to-video workflow based on this extension.</strong> """)
-            gr.HTML("""<a  style="color:SteelBlue" href="https://github.com/deforum-art/deforum-for-automatic1111-webui/wiki/FAQ-&-Troubleshooting">FOR HELP CLICK HERE</a""", elem_id="for_help_click_here")
-            gr.HTML("""<ul style="list-style-type:circle; margin-left:1em">
-            <li>The code for this extension: <a  style="color:SteelBlue" href="https://github.com/deforum-art/deforum-for-automatic1111-webui">here</a>.</li>
-            <li>Join the <a style="color:SteelBlue" href="https://discord.gg/deforum">official Deforum Discord</a> to share your creations and suggestions.</li>
-            <li>Official Deforum Wiki: <a style="color:SteelBlue" href="https://github.com/deforum-art/deforum-for-automatic1111-webui/wiki">here</a>.</li>
-            <li>Anime-inclined great guide (by FizzleDorf) with lots of examples: <a style="color:SteelBlue" href="https://rentry.org/AnimAnon-Deforum">here</a>.</li>
-            <li>For advanced keyframing with Math functions, see <a style="color:SteelBlue" href="https://github.com/deforum-art/deforum-for-automatic1111-webui/wiki/Maths-in-Deforum">here</a>.</li>
-            <li>Alternatively, use <a style="color:SteelBlue" href="https://sd-parseq.web.app/deforum">sd-parseq</a> as a UI to define your animation schedules (see the Parseq section in the Init tab).</li>
-            <li><a style="color:SteelBlue" href="https://www.framesync.xyz/">framesync.xyz</a> is also a good option, it makes compact math formulae for Deforum keyframes by selecting various waveforms.</li>
-            <li>The other site allows for making keyframes using <a style="color:SteelBlue" href="https://www.chigozie.co.uk/keyframe-string-generator/">interactive splines and Bezier curves</a> (select Disco output format).</li>
-            <li>If you want to use Width/Height which are not multiples of 64, please change noise_type to 'Uniform', in Keyframes --> Noise.</li>
-            </ul>
-            <italic>If you liked this extension, please <a style="color:SteelBlue" href="https://github.com/deforum-art/deforum-for-automatic1111-webui">give it a star on GitHub</a>!</italic> 😊""")
+            gr.HTML("""<strong> Weiran Huang, Joshua Dao and Anshul Tomar implemented their own video-to-video workflow for our course project based on this extension.</strong> """)
+            gr.HTML("""<em>This code is licensed under the MIT license, the same as the original Deforum code. All credit goes to the original authors.</em>""")
     with gr.Row(variant='compact'):
         show_info_on_ui = gr.Checkbox(label="Show more info", value=d.show_info_on_ui, interactive=True)
     if not is_extension:
@@ -965,6 +953,7 @@ def setup_deforum_setting_dictionary(self, is_img2img, is_extension = True):
                         seed_enable_extras = gr.Checkbox(label="Enable subseed controls", value=False)
                         save_sample_per_step = gr.Checkbox(label="Save sample per step", value=d.save_sample_per_step, interactive=True)
                         show_sample_per_step = gr.Checkbox(label="Show sample per step", value=d.show_sample_per_step, interactive=True)
+            # FSPBT TAB
             with gr.TabItem('FSPBT Train'):
                 project_name = gr.Textbox(label="Project Name", lines=1, interactive=True,
                                           info="Name of your project, e.g. 'woman_dance'")
@@ -978,8 +967,8 @@ def setup_deforum_setting_dictionary(self, is_img2img, is_extension = True):
                                                      file_types=[".png", ".jpg", ".jpeg"],
                                                      info="Put raw frames that are not keyframes (10 is enough)")
                         whole_video_input = gr.File(label="Whole Video Input", interactive=True, file_count="multiple",
-                                                    file_types=[".png", ".jpg", ".jpeg"],
-                                                    info="Put all raw video frames")
+                                                    file_types=[".mp4", ".avi", ".mov", ".mkv"],
+                                                    info="Upload the whole video")
                     with gr.Column():
                         gr.Label("Train Input")
                         input_filtered_train = gr.File(label="Input Filtered", interactive=True, file_count="multiple",
@@ -992,7 +981,6 @@ def setup_deforum_setting_dictionary(self, is_img2img, is_extension = True):
                 train_button = gr.Button("Train FSPBT", variant="primary")
                 interrupt_training = gr.Button("Interrupt Training", visible=True, elem_id="interrupt_training")
 
-                train_button = gr.Button("Train FSPBT", variant="primary")
 
                 def train_fspbt(project_name, process_name, input_filtered_gen, whole_video_input, input_filtered_train,
                                 output_train):
@@ -1030,9 +1018,9 @@ def setup_deforum_setting_dictionary(self, is_img2img, is_extension = True):
                     for file in output_train:
                         shutil.move(file, os.path.join(train_path, "output"))
 
-                    train_dir = os.path.join(train_path, "input_filtered")
 
-                    train_command = f"python train.py --config '_config/reference_P.yaml' --data_root '{train_dir}' --log_interval 2000 --log_folder logs_reference_P"
+
+                    train_command = f"python train.py --config '_config/reference_P.yaml' --data_root '{train_path}' --log_interval 2000 --log_folder logs_reference_P"
                     training_process = subprocess.Popen(train_command, shell=True, cwd=FSPBT_ROOT)
 
                 def interrupt_training_process():
