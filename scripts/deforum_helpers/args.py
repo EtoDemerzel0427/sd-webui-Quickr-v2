@@ -305,7 +305,7 @@ import gradio as gr
 import time
 from types import SimpleNamespace
 
-i1_store_backup = f"<p style=\"text-align:center;font-weight:bold;margin-bottom:0em\">Quickr extension for auto1111 — version 2.3b | Git commit: {get_deforum_version()}</p>"
+i1_store_backup = f"<p style=\"text-align:center;font-weight:bold;margin-bottom:0em\">Quickr extension for auto1111 — version 0.2</p>"
 i1_store = i1_store_backup
 
 mask_fill_choices=['fill', 'original', 'latent noise', 'latent nothing']
