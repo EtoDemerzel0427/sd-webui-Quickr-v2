@@ -381,7 +381,7 @@ def setup_deforum_setting_dictionary(self, is_img2img, is_extension = True):
             with gr.TabItem('Keyframes'): #TODO make a some sort of the original dictionary parsing
                 with gr.Row(variant='compact'):
                     with gr.Column(scale=2):
-                        animation_mode = gr.Radio(['2D', '3D', 'Interpolation', 'Video Input'], label="Animation mode", value=da.animation_mode, elem_id="animation_mode", info="control animation mode, will hide non relevant params upon change")
+                        animation_mode = gr.Radio(['2D', '3D', 'Interpolation', 'Video Input', 'FSPBT'], label="Animation mode", value=da.animation_mode, elem_id="animation_mode", info="control animation mode, will hide non relevant params upon change")
                     with gr.Column(scale=1, min_width=180):
                         border = gr.Radio(['replicate', 'wrap'], label="Border", value=da.border, elem_id="border", info="controls pixel generation method for images smaller than the frame. hover on the options to see more info")
                 with gr.Row(variant='compact'):

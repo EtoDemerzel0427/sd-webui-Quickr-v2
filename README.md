@@ -22,6 +22,10 @@ user interface and an integration with Stable Diffusion configurations.
 The `fspbt` folder consists of the code and the data needed for a simple run of the Few-Shot Patch-Based Training algorithm.
 There is another README.md file in the folder that explains how to run the code.
 
-
+### Deployment
+1. Install the AUTOMATIC1111/Stable-Diffusion-WebUI. 
+   Please refer to the [official repository](https://github.com/AUTOMATIC1111/stable-diffusion-webui/) for guidance. Note that this repo is updating frequently, so for your reference we are using commit `22bcc7be`.
+2. Install our extension. You can put this directory to the `extensions` folder of the Stable Diffusion WebUI, or you can open your WebUI and install for URL under the `Extension` tab.
+![Installation](https://user-images.githubusercontent.com/32998901/233818333-49220bea-0472-4563-8b8d-c4074b6d4fde.png)
 
 

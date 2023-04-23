@@ -102,6 +102,8 @@ def run_deforum(*args, **kwargs):
                 render_input_video(args, anim_args, video_args, parseq_args, loop_args, controlnet_args, root.animation_prompts, root)#TODO: prettify code
             elif anim_args.animation_mode == 'Interpolation':
                 render_interpolation(args, anim_args, video_args, parseq_args, loop_args, controlnet_args, root.animation_prompts, root)
+            elif anim_args.animation_mode == 'FSPBT':
+                print("Render FSPBT, but it's not implemented yet!")
             else:
                 print('Other modes are not available yet!')
         finally:
