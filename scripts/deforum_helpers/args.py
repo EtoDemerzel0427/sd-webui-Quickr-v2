@@ -967,7 +967,7 @@ def setup_deforum_setting_dictionary(self, is_img2img, is_extension = True):
                             org_video.upload(fn_upload_org_video, org_video, original_movie_path)
 
                         with gr.TabItem('FSPBT Keyframe'):
-                            with gr.Column(visible=False):
+                            with gr.Column():
                                 key_min_gap = gr.Slider(minimum=0, maximum=500, step=1, label='Min keyframe gap', value=10)
                                 key_max_gap = gr.Slider(minimum=0, maximum=1000, step=1, label='Max keyframe gap', value=300)
                                 key_th = gr.Slider(minimum=0.0, maximum=100.0, step=0.1, label='delta threshold',
@@ -975,7 +975,7 @@ def setup_deforum_setting_dictionary(self, is_img2img, is_extension = True):
 
                             def gen_keyframes():
                                 pass
-                            with gr.Column(visible=False):
+                            with gr.Column():
                                 keyframe_button = gr.Button(label='Generate Keyframes', value='Generate Keyframes')
 
                                 keyframe_button.click(
@@ -983,7 +983,27 @@ def setup_deforum_setting_dictionary(self, is_img2img, is_extension = True):
                                     inputs=[],
                                     outputs=[]
                                 )
+                        with gr.TabItem('FSPBT Refinement'):
+                            gr.HTML(value="<p style='margin-bottom: 0.7em'>\
+                                    <font color=\"blue\"><a href=\"https://github.com/hahnec/color-matcher\">[color-matcher]</a></font>\
+                                    </p>")
 
+                            color_matcher_method = gr.Radio(label='Color Transfer Method',
+                                                            choices=['default', 'hm', 'reinhard', 'mvgd', 'mkl',
+                                                                     'hm-mvgd-hm', 'hm-mkl-hm'], value="hm-mkl-hm",
+                                                            type="value")
+                            color_matcher_ref_type = gr.Radio(label='Color Matcher Ref Image Type',
+                                                              choices=['original video frame',
+                                                                       'first frame of img2img result'],
+                                                              value="original video frame", type="index")
+                            gr.HTML(value="<p style='margin-bottom: 0.7em'>\
+                                    <font color=\"red\">If an image is specified below, it will be used with highest priority.</font>\
+                                    </p>")
+                            color_matcher_ref_image = gr.Image(label="Color Matcher Ref Image", source='upload',
+                                                               mirror_webcam=False, type='pil')
+                            st3_5_use_mask = gr.Checkbox(label="Apply mask to the result", value=True)
+                            st3_5_use_mask_ref = gr.Checkbox(label="Apply mask to the Ref Image", value=False)
+                            st3_5_use_mask_org = gr.Checkbox(label="Apply mask to original image", value=False)
 
                         with gr.TabItem('FSPBT Train'):
                             project_name = gr.Textbox(label="Project Name", lines=1, interactive=True,
@@ -1072,6 +1092,11 @@ def setup_deforum_setting_dictionary(self, is_img2img, is_extension = True):
                                 inputs=[],
                                 outputs=[],
                             )
+                    with gr.TabItem('FSPBT Inference'):
+                        inference_button = gr.Button("FSPBT Inference", variant="primary")
+                        export_type = gr.Dropdown(choices=["mp4", "webm", "gif", "rawvideo"], value="mp4",
+                                                  label="Export type")
+
 
 
     # Gradio's Change functions - hiding and renaming elements based on other elements
