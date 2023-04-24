@@ -1092,9 +1092,9 @@ def setup_deforum_setting_dictionary(self, is_img2img, is_extension = True):
                                 inputs=[],
                                 outputs=[],
                             )
-                    with gr.TabItem('FSPBT Inference'):
-                        inference_button = gr.Button("FSPBT Inference", variant="primary")
-                        export_type = gr.Dropdown(choices=["mp4", "webm", "gif", "rawvideo"], value="mp4",
+                        with gr.TabItem('FSPBT Inference'):
+                            inference_button = gr.Button("FSPBT Inference", variant="primary")
+                            export_type = gr.Dropdown(choices=["mp4", "webm", "gif", "rawvideo"], value="mp4",
                                                   label="Export type")
 
 
