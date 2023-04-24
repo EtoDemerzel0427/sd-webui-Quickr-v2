@@ -13,3 +13,4 @@ scikit-image
 scipy
 torch
 torchvision
+color_matcher

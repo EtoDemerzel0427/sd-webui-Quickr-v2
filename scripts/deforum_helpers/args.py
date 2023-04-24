@@ -953,94 +953,124 @@ def setup_deforum_setting_dictionary(self, is_img2img, is_extension = True):
                         seed_enable_extras = gr.Checkbox(label="Enable subseed controls", value=False)
                         save_sample_per_step = gr.Checkbox(label="Save sample per step", value=d.save_sample_per_step, interactive=True)
                         show_sample_per_step = gr.Checkbox(label="Show sample per step", value=d.show_sample_per_step, interactive=True)
-            # FSPBT TAB
-            with gr.TabItem('FSPBT Train'):
-                project_name = gr.Textbox(label="Project Name", lines=1, interactive=True,
-                                          info="Name of your project, e.g. 'woman_dance'")
-                process_name = gr.Textbox(label="Process Name", lines=1, interactive=True,
-                                          info="Name of your process, e.g. 'my_process'")
+            with gr.Tabs(elem_id="FSPBT"):
+                with gr.TabItem("FSPBT Upload"):
+                    project_dir = gr.Textbox(label='Project directory', lines=1)
+                    original_movie_path = gr.Textbox(label='Original Movie Path', lines=1)
 
-                with gr.Row():
-                    with gr.Column():
-                        gr.Label("Gen Input")
-                        input_filtered_gen = gr.File(label="Input Filtered", interactive=True, file_count="multiple",
-                                                     file_types=[".png", ".jpg", ".jpeg"],
-                                                     info="Put raw frames that are not keyframes (10 is enough)")
-                        whole_video_input = gr.File(label="Whole Video Input", interactive=True, file_count="multiple",
-                                                    file_types=[".mp4", ".avi", ".mov", ".mkv"],
-                                                    info="Upload the whole video")
-                    with gr.Column():
-                        gr.Label("Train Input")
-                        input_filtered_train = gr.File(label="Input Filtered", interactive=True, file_count="multiple",
-                                                       file_types=[".png", ".jpg", ".jpeg"],
-                                                       info="Put raw keyframe images")
-                        output_train = gr.File(label="Output", interactive=True, file_count="multiple",
-                                               file_types=[".png", ".jpg", ".jpeg"],
-                                               info="Put generated keyframe images by stable diffusion's image-to-image")
+                    org_video = gr.Video(interactive=True, mirror_webcam=False)
 
-                train_button = gr.Button("Train FSPBT", variant="primary")
-                interrupt_training = gr.Button("Interrupt Training", visible=True, elem_id="interrupt_training")
+                    def fn_upload_org_video(video):
+                        return video
 
+                    org_video.upload(fn_upload_org_video, org_video, original_movie_path)
 
-                def train_fspbt(project_name, process_name, input_filtered_gen, whole_video_input, input_filtered_train,
-                                output_train):
+                with gr.TabItem('FSPBT Keyframe'):
+                    with gr.Column(visible=False):
+                        key_min_gap = gr.Slider(minimum=0, maximum=500, step=1, label='Min keyframe gap', value=10)
+                        key_max_gap = gr.Slider(minimum=0, maximum=1000, step=1, label='Max keyframe gap', value=300)
+                        key_th = gr.Slider(minimum=0.0, maximum=100.0, step=0.1, label='delta threshold',
+                                       value=8.5)
 
-                    global training_process
+                    def gen_keyframes():
+                        pass
+                    with gr.Column(visible=False):
+                        keyframe_button = gr.Button(label='Generate Keyframes', value='Generate Keyframes')
 
-                    # get fsbpt root
-                    current_script_dir = os.path.dirname(os.path.abspath(__file__))
-                    basedir = os.path.abspath(os.path.join(current_script_dir, '..', '..'))
-                    FSPBT_ROOT = os.path.join(basedir, 'fspbt')
-
-                    # create project and process folders
-                    base_path = os.path.join(FSPBT_ROOT, project_name)
-                    gen_path = os.path.join(base_path, f"{process_name}_gen")
-                    train_path = os.path.join(base_path, f"{process_name}_train")
-
-                    os.makedirs(os.path.join(gen_path, "input_filtered"), exist_ok=True)
-                    os.makedirs(os.path.join(gen_path, "whole_video_input"), exist_ok=True)
-                    os.makedirs(os.path.join(train_path, "input_filtered"), exist_ok=True)
-                    os.makedirs(os.path.join(train_path, "output"), exist_ok=True)
-
-                    # raw frames to test during training
-                    for file in input_filtered_gen:
-                        shutil.move(file, os.path.join(gen_path, "input_filtered"))
-
-                    # whole video input
-                    for file in whole_video_input:
-                        shutil.move(file, os.path.join(gen_path, "whole_video_input"))
-
-                    # raw keyframes
-                    for file in input_filtered_train:
-                        shutil.move(file, os.path.join(train_path, "input_filtered"))
-
-                    # the folder for the generated images of the selected keyframes
-                    for file in output_train:
-                        shutil.move(file, os.path.join(train_path, "output"))
+                        keyframe_button.click(
+                            fn=gen_keyframes,
+                            inputs=[],
+                            outputs=[]
+                        )
 
 
+                with gr.TabItem('FSPBT Train'):
+                    project_name = gr.Textbox(label="Project Name", lines=1, interactive=True,
+                                              info="Name of your project, e.g. 'woman_dance'")
+                    process_name = gr.Textbox(label="Process Name", lines=1, interactive=True,
+                                              info="Name of your process, e.g. 'my_process'")
 
-                    train_command = f"python train.py --config '_config/reference_P.yaml' --data_root '{train_path}' --log_interval 2000 --log_folder logs_reference_P"
-                    training_process = subprocess.Popen(train_command, shell=True, cwd=FSPBT_ROOT)
+                    with gr.Row():
+                        with gr.Column():
+                            gr.Label("Gen Input")
+                            input_filtered_gen = gr.File(label="Input Filtered", interactive=True, file_count="multiple",
+                                                         file_types=[".png", ".jpg", ".jpeg"],
+                                                         info="Put raw frames that are not keyframes (10 is enough)")
+                            whole_video_input = gr.File(label="Whole Video Input", interactive=True, file_count="multiple",
+                                                        file_types=[".mp4", ".avi", ".mov", ".mkv"],
+                                                        info="Upload the whole video")
+                        with gr.Column():
+                            gr.Label("Train Input")
+                            input_filtered_train = gr.File(label="Input Filtered", interactive=True, file_count="multiple",
+                                                           file_types=[".png", ".jpg", ".jpeg"],
+                                                           info="Put raw keyframe images")
+                            output_train = gr.File(label="Output", interactive=True, file_count="multiple",
+                                                   file_types=[".png", ".jpg", ".jpeg"],
+                                                   info="Put generated keyframe images by stable diffusion's image-to-image")
 
-                def interrupt_training_process():
-                    global training_process
-                    if training_process:
-                        training_process.terminate()
-                        training_process = None
+                    train_button = gr.Button("Train FSPBT", variant="primary")
+                    interrupt_training = gr.Button("Interrupt Training", visible=True, elem_id="interrupt_training")
 
-                train_button.click(
-                    fn=train_fspbt,
-                    inputs=[project_name, process_name, input_filtered_gen, whole_video_input, input_filtered_train,
-                            output_train],
-                    outputs=[],
-                )
 
-                interrupt_training.click(
-                    fn=interrupt_training_process,
-                    inputs=[],
-                    outputs=[],
-                )
+                    def train_fspbt(project_name, process_name, input_filtered_gen, whole_video_input, input_filtered_train,
+                                    output_train):
+
+                        global training_process
+
+                        # get fsbpt root
+                        current_script_dir = os.path.dirname(os.path.abspath(__file__))
+                        basedir = os.path.abspath(os.path.join(current_script_dir, '..', '..'))
+                        FSPBT_ROOT = os.path.join(basedir, 'fspbt')
+
+                        # create project and process folders
+                        base_path = os.path.join(FSPBT_ROOT, project_name)
+                        gen_path = os.path.join(base_path, f"{process_name}_gen")
+                        train_path = os.path.join(base_path, f"{process_name}_train")
+
+                        os.makedirs(os.path.join(gen_path, "input_filtered"), exist_ok=True)
+                        os.makedirs(os.path.join(gen_path, "whole_video_input"), exist_ok=True)
+                        os.makedirs(os.path.join(train_path, "input_filtered"), exist_ok=True)
+                        os.makedirs(os.path.join(train_path, "output"), exist_ok=True)
+
+                        # raw frames to test during training
+                        for file in input_filtered_gen:
+                            shutil.move(file, os.path.join(gen_path, "input_filtered"))
+
+                        # whole video input
+                        for file in whole_video_input:
+                            shutil.move(file, os.path.join(gen_path, "whole_video_input"))
+
+                        # raw keyframes
+                        for file in input_filtered_train:
+                            shutil.move(file, os.path.join(train_path, "input_filtered"))
+
+                        # the folder for the generated images of the selected keyframes
+                        for file in output_train:
+                            shutil.move(file, os.path.join(train_path, "output"))
+
+
+
+                        train_command = f"python train.py --config '_config/reference_P.yaml' --data_root '{train_path}' --log_interval 2000 --log_folder logs_reference_P"
+                        training_process = subprocess.Popen(train_command, shell=True, cwd=FSPBT_ROOT)
+
+                    def interrupt_training_process():
+                        global training_process
+                        if training_process:
+                            training_process.terminate()
+                            training_process = None
+
+                    train_button.click(
+                        fn=train_fspbt,
+                        inputs=[project_name, process_name, input_filtered_gen, whole_video_input, input_filtered_train,
+                                output_train],
+                        outputs=[],
+                    )
+
+                    interrupt_training.click(
+                        fn=interrupt_training_process,
+                        inputs=[],
+                        outputs=[],
+                    )
 
 
     # Gradio's Change functions - hiding and renaming elements based on other elements
