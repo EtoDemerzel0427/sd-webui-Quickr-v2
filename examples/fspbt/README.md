@@ -127,6 +127,8 @@ python gen_video.py
 Note that this is just an naive demo that lacks many features, such as:
 1. Using some tools to eliminate the distortion of the generated frames, such as FaceEdit.
 2. Using the optical flow and temporal consistency tools provided in the original repository to improve the quality of the generated video.
+3. Did not apply any refinement to the keyframes, such as color correction.
+4. Using only 6 keyframes to train (for the sake of simplicity), which is far from enough to generate a good style.
 
 However, this demo has already shown the ability of the algorithm to transfer the style from keyframes to the rest of the video in an efficient way,
 which provides a good starting point for further development.

@@ -61,42 +61,6 @@ def on_ui_tabs():
                                     key_th = gr.Slider(minimum=0.0, maximum=100.0, step=0.1, label='Threshold of delta frame edge', value=8.5)
                                     key_add_last_frame = gr.Checkbox(label="Add last frame to keyframes", value=True)
 
-                                with gr.TabItem(label="stage 3", elem_id='ebs_configuration_tab3'):
-                                    config_path = gr.Textbox(label='Config path',
-                                                             default='_config/reference_P.yaml', lines=1)
-                                    project_name = gr.Textbox(label='Project name', lines=1)
-                                    process_name = gr.Textbox(label='Process name', lines=1)
-
-                                    with gr.Row():
-                                        with gr.Column():
-                                            gr.Label("Gen Input")
-                                            input_filtered_gen = gr.File(label="Input Filtered", interactive=True, file_count="multiple",
-                                                                           file_types=[".png", ".jpg", ".jpeg"],
-                                                                           info="Put raw keyframe images")
-                                            video_path = gr.Textbox(label='Whole video input (Optional)', lines=1,
-                                                                    placeholder='Leave empty to use the video from stage 1',
-                                                                    default=f'{original_movie_path.value}')
-
-                                        with gr.Column():
-                                            gr.Label("Train input")
-                                            input_filtered_train = gr.File(label="Input Filtered", interactive=True,
-                                                                           file_count="multiple",
-                                                                           file_types=[".png", ".jpg", ".jpeg"],
-                                                                           info="Put raw keyframe images")
-                                            train_output = gr.File(label="Output", interactive=True, file_count="multiple",
-                                                                  file_types=[".png", ".jpg", ".jpeg"],
-                                                                  info="Put generated keyframe images by stable diffusion's image-to-image")
-                                    gr.HTML(value="<p style='margin-bottom: 1.2em'>\
-                                            If not specified, the video path from stage 1 (project setting) will be used for the whole video input.\
-                                            </p>")
-
-                                    log_interval = gr.Slider(label='Log interval', min=100, max=5000, step=100,
-                                                             default=2000)
-                                    log_folder = gr.Textbox(label='Log folder', default='logs_reference_P', lines=1)
-
-
-
-
                                 with gr.TabItem(label="stage 3.5", elem_id='ebs_configuration_tab3_5'):
                                     gr.HTML(value="<p style='margin-bottom: 0.7em'>\
                                             <font color=\"blue\"><a href=\"https://github.com/hahnec/color-matcher\">[color-matcher]</a></font>\
@@ -112,6 +76,39 @@ def on_ui_tabs():
                                     st3_5_use_mask_ref = gr.Checkbox(label="Apply mask to the Ref Image", value=False)
                                     st3_5_use_mask_org = gr.Checkbox(label="Apply mask to original image", value=False)
                                     #st3_5_number_of_itr = gr.Slider(minimum=1, maximum=10, step=1, label='Number of iterations', value=1)
+
+                                with gr.TabItem(label="stage 5", elem_id='ebs_configuration_tab3'):
+                                    config_path = gr.Textbox(label='Config path',
+                                                             default='_config/reference_P.yaml', lines=1)
+                                    project_name = gr.Textbox(label='Project name', lines=1)
+                                    process_name = gr.Textbox(label='Process name', lines=1)
+
+                                    with gr.Row():
+                                        with gr.Column():
+                                            gr.Label("Gen Input")
+                                            input_filtered_gen = gr.File(label="Input Filtered", interactive=True, file_count="multiple",
+                                                                           file_types=[".png", ".jpg", ".jpeg"],
+                                                                           info="Put raw keyframe images")
+                                            whole_video_input = gr.File(label="Whole Video Input", interactive=True, file_count="single",
+                                                                        file_types=[".mp4", ".avi", ".mov"],
+                                                                        info="Put whole video input")
+
+                                        with gr.Column():
+                                            gr.Label("Train input")
+                                            input_filtered_train = gr.File(label="Input Filtered", interactive=True,
+                                                                           file_count="multiple",
+                                                                           file_types=[".png", ".jpg", ".jpeg"],
+                                                                           info="Put raw keyframe images")
+                                            train_output = gr.File(label="Output", interactive=True, file_count="multiple",
+                                                                  file_types=[".png", ".jpg", ".jpeg"],
+                                                                  info="Put generated keyframe images by stable diffusion's image-to-image")
+                                    gr.HTML(value="<p style='margin-bottom: 1.2em'>\
+                                            If not specified, the video path from stage 1 (project setting) will be used for the whole video input.\
+                                            </p>")
+
+                                    log_interval = gr.Slider(label='Log interval', minimum=100, maximum=5000, step=100,
+                                                             value=2000)
+                                    log_folder = gr.Textbox(label='Log folder', default='logs_reference_P', lines=1)
 
                                 with gr.TabItem(label="stage 7", elem_id='ebs_configuration_tab7'):
                                     blend_rate = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Crossfade blend rate', value=1.0)
@@ -151,7 +148,7 @@ def on_ui_tabs():
                                                 <b>stage 5</b> <br>\
                                                     Train FSPBT. <br><br>\
                                                 <b>stage 6</b> <br>\
-                                                    Generate a video by applying FSPBT to the original video frames.<br><br>\
+                                                    Generate a video by applying trained FSPBT to the original video frames.<br><br>\
                                                 <b>stage 7</b> <br>\
                                                     Concatenate each frame while crossfading.<br>\
                                                     Composite audio files extracted from the original video onto the concatenated video.<br><br>\
@@ -201,6 +198,16 @@ def on_ui_tabs():
                     st3_5_use_mask_org,
                     color_matcher_ref_type,
                     color_matcher_ref_image,
+
+                    config_path,
+                    project_name,
+                    process_name,
+                    input_filtered_train,
+                    input_filtered_gen,
+                    whole_video_input,
+                    train_output,
+                    log_interval,
+                    log_folder,
 
                     blend_rate,
                     export_type,

@@ -5,6 +5,9 @@ from modules.ui import plaintext_to_html
 import cv2
 import glob
 from PIL import Image
+import shutil
+import subprocess
+import io
 
 from extensions.ebsynth_utility.stage1 import ebsynth_utility_stage1,ebsynth_utility_stage1_invert
 from extensions.ebsynth_utility.stage2 import ebsynth_utility_stage2
@@ -13,6 +16,53 @@ from extensions.ebsynth_utility.stage7 import ebsynth_utility_stage7
 from extensions.ebsynth_utility.stage8 import ebsynth_utility_stage8
 from extensions.ebsynth_utility.stage3_5 import ebsynth_utility_stage3_5
 
+
+def create_folders(project_name, process_name, input_filtered_train, input_filtered_gen, whole_video_input,
+                   train_output):
+    gen_folder = f"{project_name}/{process_name}_gen"
+    train_folder = f"{project_name}/{process_name}_train"
+
+    os.makedirs(f"{gen_folder}/input_filtered", exist_ok=True)
+    os.makedirs(f"{gen_folder}/whole_video_input", exist_ok=True)
+    os.makedirs(f"{train_folder}/input_filtered", exist_ok=True)
+    os.makedirs(f"{train_folder}/output", exist_ok=True)
+
+    for file in input_filtered_train:
+        shutil.move(file, os.path.join(train_folder, "input_filtered"))
+
+    for file in input_filtered_gen:
+        shutil.move(file, os.path.join(gen_folder, "input_filtered"))
+
+    for file in train_output:
+        shutil.move(file, os.path.join(train_folder, "output"))
+
+    # Extract video frames to whole_video_input
+    file_buffer = io.BytesIO(whole_video_input)
+    cap = cv2.VideoCapture(file_buffer.name)
+    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    for i in range(frame_count):
+        ret, frame = cap.read()
+        if ret:
+            cv2.imwrite(f"{gen_folder}/whole_video_input/frame_{i:04d}.png", frame)
+    cap.release()
+
+
+def train_FSPBT(project_name, process_name, config_path, log_interval, log_path):
+    train_cmd = f"python train.py --config {config_path} --data_root ../{project_name}/{process_name}--log_interval {log_interval} --log_path {log_path}"
+    training_process = subprocess.Popen(train_cmd, shell=True, cwd="fspbt")
+
+    return training_process
+
+
+def test_FSPBT(project_name, process_name, config_path, log_interval, log_path):
+    # example command: python generate.py --checkpoint $MODEL_PATH --data_root $GEN_DIR --dir_input whole_video_input --outdir $OUTPUT_PATH --device "cuda:0"
+    # MODEL_PATH="../woman_dance/logs_reference_P/model_00020.ckpt"
+    # GEN_DIR="../woman_dance/woman_gen/"
+    # OUTPUT_PATH="${GEN_DIR}/whole_video_output"
+    test_cmd = f"python generate.py --checkpoint ../{project_name}/{process_name}_train/logs_reference_P/model_00020.ckpt --data_root ../{project_name}/{process_name}_gen --dir_input whole_video_input --outdir ../{project_name}/{process_name}_gen/whole_video_output --device 'cuda:0'"
+    testing_process = subprocess.Popen(test_cmd, shell=True, cwd="fspbt")
+
+    return testing_process
 
 def x_ceiling(value, step):
   return -(-value // step) * step
@@ -30,7 +80,8 @@ class debug_string:
     def to_string(self):
         return self.txt
 
-def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_path:str, frame_width:int, frame_height:int, st1_masking_method_index:int, st1_mask_threshold:float, tb_use_fast_mode:bool, tb_use_jit:bool, clipseg_mask_prompt:str, clipseg_exclude_prompt:str, clipseg_mask_threshold:int, clipseg_mask_blur_size:int, clipseg_mask_blur_size2:int, key_min_gap:int, key_max_gap:int, key_th:float, key_add_last_frame:bool, color_matcher_method:str, st3_5_use_mask:bool, st3_5_use_mask_ref:bool, st3_5_use_mask_org:bool, color_matcher_ref_type:int, color_matcher_ref_image:Image, blend_rate:float, export_type:str, bg_src:str, bg_type:str, mask_blur_size:int, mask_threshold:float, fg_transparency:float, mask_mode:str):
+def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_path:str, frame_width:int, frame_height:int, st1_masking_method_index:int, st1_mask_threshold:float, tb_use_fast_mode:bool, tb_use_jit:bool, clipseg_mask_prompt:str, clipseg_exclude_prompt:str, clipseg_mask_threshold:int, clipseg_mask_blur_size:int, clipseg_mask_blur_size2:int, key_min_gap:int, key_max_gap:int, key_th:float, key_add_last_frame:bool, color_matcher_method:str, st3_5_use_mask:bool, st3_5_use_mask_ref:bool, st3_5_use_mask_org:bool, color_matcher_ref_type:int, color_matcher_ref_image:Image, config_path:str, project_name:str, process_name:str, input_filtered_train, input_filtered_gen,
+                    whole_video_input, train_output, log_interval:int, log_folder, blend_rate:float, export_type:str, bg_src:str, bg_type:str, mask_blur_size:int, mask_threshold:float, fg_transparency:float, mask_mode:str):
     args = locals()
     info = ""
     info = dump_dict(info, args)
@@ -157,22 +208,28 @@ def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_pa
         dbg.print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return process_end( dbg, "" )
     elif stage_index == 5:
-        ebsynth_utility_stage5(dbg, project_args, is_invert_mask)
+        create_folders(project_name, process_name, input_filtered_train, input_filtered_gen, whole_video_input, train_output)
+        training_cmd = train_FSPBT(project_name, process_name, config_path, log_interval, log_folder);
+
+        # ebsynth_utility_stage5(dbg, project_args, is_invert_mask)
+        pass
     elif stage_index == 6:
-
-        if is_invert_mask:
-            project_dir = inv_path
-
-        dbg.print("stage 6")
-        dbg.print("")
-        dbg.print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        dbg.print("Running ebsynth.(on your self)")
-        dbg.print("Open the generated .ebs under %s and press [Run All] button."%(project_dir))
-        dbg.print("If ""out-*"" directory already exists in the %s, delete it manually before executing."%(project_dir))
-        dbg.print("If multiple .ebs files are generated, run them all.")
-        dbg.print("(I recommend associating the .ebs file with EbSynth.exe.)")
-        dbg.print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        return process_end( dbg, "" )
+        # generate with trained FSPBT model
+        test_cmd = test_FSPBT(project_name, process_name, config_path, log_interval, log_folder)
+        #
+        # if is_invert_mask:
+        #     project_dir = inv_path
+        #
+        # dbg.print("stage 6")
+        # dbg.print("")
+        # dbg.print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        # dbg.print("Running ebsynth.(on your self)")
+        # dbg.print("Open the generated .ebs under %s and press [Run All] button."%(project_dir))
+        # dbg.print("If ""out-*"" directory already exists in the %s, delete it manually before executing."%(project_dir))
+        # dbg.print("If multiple .ebs files are generated, run them all.")
+        # dbg.print("(I recommend associating the .ebs file with EbSynth.exe.)")
+        # dbg.print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        # return process_end( dbg, "" )
     elif stage_index == 7:
         ebsynth_utility_stage7(dbg, project_args, blend_rate, export_type, is_invert_mask)
     elif stage_index == 8:
